@@ -1,0 +1,73 @@
+{
+  "project_info": {
+    "project_number": "922544899064",
+    "firebase_url": "https://notificationapp-f937b.firebaseio.com",
+    "project_id": "notificationapp-f937b",
+    "storage_bucket": "notificationapp-f937b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:922544899064:android:29e87684032fd00c",
+        "android_client_info": {
+          "package_name": "com.example.sameh.pushnotification"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "922544899064-5crp4o8uafviu235m72tdjb5dgcgfv0o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDp2p3H1yALTMuxH0mNtV7c_jEImtq4zWY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:922544899064:android:6d155743e4a5dc2b",
+        "android_client_info": {
+          "package_name": "com.example.sameh.sensordatatest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "922544899064-5crp4o8uafviu235m72tdjb5dgcgfv0o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDp2p3H1yALTMuxH0mNtV7c_jEImtq4zWY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

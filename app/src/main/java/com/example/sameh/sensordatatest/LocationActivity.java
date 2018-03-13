@@ -152,7 +152,7 @@ public class LocationActivity extends AppCompatActivity implements NavigationVie
     public void volleySetLocation(Double lat , Double lon) {
         RequestQueue requestQueue = Volley.newRequestQueue(this);
 
-        StringRequest request = new StringRequest(Request.Method.GET, "http://192.168.1.5:8080/" + lat + "/" + lon + "/saveLocation", new Response.Listener<String>() {
+        StringRequest request = new StringRequest(Request.Method.GET, "http://192.168.43.93:8080/" + lat + "/" + lon + "/saveLocation", new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
 
