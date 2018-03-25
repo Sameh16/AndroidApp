@@ -1,6 +1,8 @@
 package com.example.sameh.sensordatatest;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -27,6 +29,7 @@ public class Gyroscope extends AppCompatActivity  implements NavigationView.OnNa
     private EditText Y;
     private EditText Z;
     private Intent intent;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +135,15 @@ public class Gyroscope extends AppCompatActivity  implements NavigationView.OnNa
 
         } else if (id == R.id.nav_send) {
 
+        }else if (id ==R.id.nav_out) {
+            sharedPreferences =  getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF), Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove("driverId");
+            editor.remove("password");
+            editor.commit();
+            Intent intent = new Intent(this,Login.class);
+            startActivity(intent);
+            finish();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

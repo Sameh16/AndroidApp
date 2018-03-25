@@ -8,44 +8,27 @@
     tools:context="com.example.sameh.sensordatatest.MainActivity"
     >
 
-    <EditText
-        android:id="@+id/view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/stopService"
-        android:layout_below="@+id/stopService"
-        android:layout_marginTop="48dp"
-        android:text="Hello World!"
-        />
 
     <Button
         android:id="@+id/startService"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="120dp"
-        android:text="Start Service" />
+        android:layout_marginTop="143dp"
+        android:text="Start Trip" />
 
     <Button
         android:id="@+id/stopService"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="stop Service"
+        android:layout_below="@+id/startService"
 
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="220dp"
-        />
+        android:layout_marginTop="76dp"
+        android:text="End Trip" />
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/view"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="28dp"
-        android:text="Button"
-        android:onClick="sendToken"
-        />
+
 
 </RelativeLayout>

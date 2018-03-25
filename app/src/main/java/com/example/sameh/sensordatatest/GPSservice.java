@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -30,12 +31,13 @@ public class GPSservice extends Service {
     LocationListener locationListener;
     LocationManager locationManager;
     Location prev_location;
-
-
+    SharedPreferences sharedPreferences;
     public GPSservice() {
         prev_location = new Location("");
         prev_location.setLongitude(0);
         prev_location.setLatitude(0);
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF),Context.MODE_PRIVATE);
+
     }
 
     @Override
@@ -47,7 +49,7 @@ public class GPSservice extends Service {
             public void onLocationChanged(Location location) {
                 Log.i("getLocation",location.getLongitude()+"  "+prev_location.getLongitude());
                 volleySetLocation(location, prev_location);
-                Log.i("getLocation",location.getLongitude()+"  "+prev_location.getLongitude());
+                //Log.i("getLocation",location.getLongitude()+"  "+prev_location.getLongitude());
             }
 
             @Override
@@ -118,7 +120,8 @@ public class GPSservice extends Service {
         //Toast.makeText(context,"distance = "+distance,Toast.LENGTH_SHORT).show();
         //Toast.makeText(context,"diffTime = "+diffTime,Toast.LENGTH_SHORT).show();
         prev_location.set(location);
-        String url = "https://seels-application.herokuapp.com/"+lat+"/"+lon+"/"+speed+"/saveLocation";
+        String driverId = sharedPreferences.getString("driverId","");
+        String url = "https://seels-application.herokuapp.com/"+lat+"/"+lon+"/"+speed+"/"+driverId+"/saveLocation";
         StringRequest request  = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

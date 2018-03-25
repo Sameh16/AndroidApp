@@ -46,24 +46,17 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    TextView view;
-    private static  final int REQUEST_LOCATION = 1;
-    private LocationManager locationManager;
     private Intent intent;
     private Location prev_location;
-    private Intent serviceIntent;
     private Button start;
     private Button stop;
-    private BroadcastReceiver broadcastReceiver;
+    SharedPreferences sharedPreferences;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        prev_location = new Location("locationA");
-        prev_location.setLatitude(0);
-        prev_location.setLongitude(0);
 
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -76,7 +69,6 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
 
-        view = findViewById(R.id.view);
         start = findViewById(R.id.startService);
         stop = findViewById(R.id.stopService);
 
@@ -84,9 +76,6 @@ public class MainActivity extends AppCompatActivity
             enable_buttons();
 
         FirebaseMessaging.getInstance().subscribeToTopic("topicA");
-
-        //vollyGetLocation();
-        //volleySetLocation(30.15,30.15);
 
     }
 
@@ -101,6 +90,8 @@ public class MainActivity extends AppCompatActivity
                 Log.i("start","start");
                 Intent i =new Intent(getApplicationContext(),GPSservice.class);
                 startService(i);
+               // Intent intent = new Intent(MainActivity.this,MapsActivity.class);
+
             }
         });
 
@@ -193,6 +184,15 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_send) {
 
+        }else if (id == R.id.nav_out) {
+            sharedPreferences =  getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF), Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove("driverId");
+            editor.remove("password");
+            editor.commit();
+            Intent intent = new Intent(this,Login.class);
+            startActivity(intent);
+            finish();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -200,120 +200,14 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public Location vollyGetLocation(){
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-
-       JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, "http://192.168.1.7:8080/getCurrentLocation", new Response.Listener<JSONObject>() {
-           @Override
-           public void onResponse(JSONObject response) {
-                view.setText(response.toString());
-           }
-       }, new Response.ErrorListener() {
-           @Override
-           public void onErrorResponse(VolleyError error) {
-                view.setText("Error message  " +error.getMessage() );
-           }
-       });
-
-       requestQueue.add(jsonObjectRequest);
-        return null;
-    }
-
-    public void volleySetLocation(Location location, Location prev_location, final Context context)
-    {
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-        double speed =0.0;
-        if (prev_location.getLongitude()!=0) {
-            double distance = location.distanceTo(prev_location);
-            double diffTime = location.getTime() - prev_location.getTime();
 
 
-            if (location.hasSpeed())
-                speed = location.getSpeed();
-            else
-                speed = distance / diffTime;
-        }
-        //Toast.makeText(context,"distance = "+distance,Toast.LENGTH_SHORT).show();
-        //Toast.makeText(context,"diffTime = "+diffTime,Toast.LENGTH_SHORT).show();
-        prev_location.set(location);
-        String url = "https://seels-application.herokuapp.com/"+lat+"/"+lon+"/"+speed+"/saveLocation";
-        StringRequest request  = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Toast.makeText(context,"Send!",Toast.LENGTH_SHORT).show();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-                //Toast.makeText(context,error.getMessage().toString(),Toast.LENGTH_SHORT).show();
-            }
-        });
-        requestQueue.add(request);
-    }
-
-    private void getLocation() {
-
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!=
-                PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=
-                PackageManager.PERMISSION_GRANTED)
-        {
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION },REQUEST_LOCATION);
-        }
-        else {
-            Location location = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
-            if (location != null)
-            {
-                double lat = location.getLatitude();
-                double lon = location.getLongitude();
-               /* Lat.setText(""+lat);
-                Long.setText(" "+lon);*/
-               view.setText(lat+"  ");
-               Context context = this;
-               Toast.makeText(this,lon+"",Toast.LENGTH_SHORT).show();
-                volleySetLocation(location,prev_location,context);
-            }
-            else{
-               /* Lat.setText("Falied to get location");
-                Long.setText("");*/
-               Toast.makeText(this,"Error Connection",Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(broadcastReceiver != null){
-            unregisterReceiver(broadcastReceiver);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(broadcastReceiver == null){
-            broadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-
-                    view.append("\n" +intent.getExtras().get("coordinates"));
-
-                }
-            };
-        }
-        registerReceiver(broadcastReceiver,new IntentFilter("location_update"));
-    }
 
     private String app_server_url = "http://192.168.1.5:80/app/insert.php";
     public void sendToken(View v)
     {
         SharedPreferences sharedPreferences =  getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF), Context.MODE_PRIVATE);
         final String token = sharedPreferences.getString(getString(R.string.FCM_TOKEN),"");
-        view.setText(token);
         /*
         StringRequest stringRequest = new StringRequest(Request.Method.POST, app_server_url,
                 new Response.Listener<String>() {
