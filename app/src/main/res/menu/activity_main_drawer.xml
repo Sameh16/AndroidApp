@@ -9,9 +9,9 @@
             android:icon="@drawable/ic_gyroscope"
             android:title="Gyroscope" />
         <item
-            android:id="@+id/nav_accumulator"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Accumulator " />
+            android:id="@+id/nav_rate"
+            android:icon="@drawable/ic_star_rate_black_18dp"
+            android:title="Show Rate " />
         <item
             android:id="@+id/nav_Location"
             android:icon="@drawable/ic_menu_slideshow"

@@ -1,6 +1,7 @@
 package com.example.sameh.sensordatatest;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
@@ -36,20 +37,21 @@ public class GPSservice extends Service {
         prev_location = new Location("");
         prev_location.setLongitude(0);
         prev_location.setLatitude(0);
-        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF),Context.MODE_PRIVATE);
 
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onCreate() {
         super.onCreate();
-
+        Log.i("ss","onCreate");
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+
                 Log.i("getLocation",location.getLongitude()+"  "+prev_location.getLongitude());
                 volleySetLocation(location, prev_location);
-                //Log.i("getLocation",location.getLongitude()+"  "+prev_location.getLongitude());
+                Log.i("getLocation",location.getLongitude()+"  "+prev_location.getLongitude());
             }
 
             @Override
@@ -73,19 +75,15 @@ public class GPSservice extends Service {
 
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 
-        //noinspection MissingPermission
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+        Log.i("ss","how not send ??");
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, locationListener);
     }
+
+  /*  @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i("ss","start");
+        return START_STICKY_COMPATIBILITY;
+    }*/
 
     @Override
     public void onDestroy() {
@@ -105,6 +103,7 @@ public class GPSservice extends Service {
 
     public void volleySetLocation(Location location, Location prev_location)
     {
+
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         double lat = location.getLatitude();
         double lon = location.getLongitude();
@@ -120,8 +119,9 @@ public class GPSservice extends Service {
         //Toast.makeText(context,"distance = "+distance,Toast.LENGTH_SHORT).show();
         //Toast.makeText(context,"diffTime = "+diffTime,Toast.LENGTH_SHORT).show();
         prev_location.set(location);
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF),Context.MODE_PRIVATE);
         String driverId = sharedPreferences.getString("driverId","");
-        String url = "https://seels-application.herokuapp.com/"+lat+"/"+lon+"/"+speed+"/"+driverId+"/saveLocation";
+        String url = "https://seelsapp.herokuapp.com/"+lat+"/"+lon+"/"+speed+"/"+driverId+"/saveLocation";
         StringRequest request  = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

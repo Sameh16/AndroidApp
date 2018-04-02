@@ -1,18 +1,13 @@
 package com.example.sameh.sensordatatest;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
@@ -24,32 +19,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.firebase.messaging.FirebaseMessaging;
-
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private Intent intent;
-    private Location prev_location;
     private Button start;
     private Button stop;
+    private String driverId;
     SharedPreferences sharedPreferences;
 
 
@@ -58,7 +38,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        // navigation bar
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -68,19 +48,20 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
+        // start trip
         start = findViewById(R.id.startService);
         stop = findViewById(R.id.stopService);
 
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF),Context.MODE_PRIVATE);
+        driverId=sharedPreferences.getString("driverId","");
+
+
         if(!runtime_permissions())
             enable_buttons();
-
+        // topic for all devices
         FirebaseMessaging.getInstance().subscribeToTopic("topicA");
 
     }
-
-
-
 
     private void enable_buttons() {
 
@@ -88,9 +69,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Log.i("start","start");
-                Intent i =new Intent(getApplicationContext(),GPSservice.class);
-                startService(i);
-               // Intent intent = new Intent(MainActivity.this,MapsActivity.class);
+
+                Intent intent = new Intent(MainActivity.this,MapsActivity.class);
+                intent.putExtra("driverId",driverId);
+                startActivity(intent);
 
             }
         });
@@ -100,7 +82,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
 
                 Log.i("stop","stop");
-                Intent i = new Intent(getApplicationContext(),GPSservice.class);
+                Intent i = new Intent(getApplicationContext(),MyService2.class);
                 stopService(i);
 
             }
@@ -168,16 +150,10 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_gyroscope) {
-            intent = new Intent(this,Gyroscope.class);
-            startActivity(intent);
-            // Handle the camera action
-        } else if (id == R.id.nav_accumulator) {
-
-        } else if (id == R.id.nav_Location) {
-            intent = new Intent(this,LocationActivity.class);
-            startActivity(intent);
-
+        if (id == R.id.nav_rate) {
+            Intent i = new Intent(this,Rate.class);
+            i.putExtra("driverId",driverId);
+            startActivity(i);
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
@@ -203,37 +179,6 @@ public class MainActivity extends AppCompatActivity
 
 
 
-    private String app_server_url = "http://192.168.1.5:80/app/insert.php";
-    public void sendToken(View v)
-    {
-        SharedPreferences sharedPreferences =  getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF), Context.MODE_PRIVATE);
-        final String token = sharedPreferences.getString(getString(R.string.FCM_TOKEN),"");
-        /*
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, app_server_url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.e("Hello",token);
-                    }
-                }, new Response.ErrorListener() {
 
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("Error",error.getMessage());
-            }
-        }
-
-        ){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-
-                Map<String,String> par = new HashMap<>();
-                par.put("fcm_token",token);
-                return par;
-            }
-        };
-        SingleTon.getInstance(MainActivity.this).addToRequestQueue(stringRequest);
-        */
-    }
 
 }

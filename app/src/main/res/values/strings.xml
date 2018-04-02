@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SensorDataTest</string>
+    <string name="app_name">SEELS</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -11,5 +11,6 @@
     <string name="FCM_PREF">com.example.sameh.sensordatatest.fcm_pref</string>
     <string name="FCM_TOKEN">com.example.sameh.sensordatatest.fcm_token</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
 </resources>

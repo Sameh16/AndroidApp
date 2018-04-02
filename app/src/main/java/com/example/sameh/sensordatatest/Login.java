@@ -12,14 +12,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Login extends AppCompatActivity {
 
@@ -64,12 +63,12 @@ public class Login extends AppCompatActivity {
     public void login(String email ,String password) {
         Log.d(TAG, "Login");
 
-        if (!validate()) {
-            onLoginFailed();
+        if (!validate(email,password)) {
+            onLoginFailed(-1);
             return;
         }
 
-        loginButton.setEnabled(false);
+        //loginButton.setEnabled(false);
 
         final ProgressDialog progressDialog = new ProgressDialog(Login.this,
                 R.style.AppTheme_Dark_Dialog);
@@ -77,16 +76,20 @@ public class Login extends AppCompatActivity {
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
 
+        final String email_temp = email;
+        final String password_temp = password;
+        if (sharedPreferences.getString("driverId","").equals(""))
+            LoginService(email_temp,password_temp);
+        else
+            onLoginSuccess();
 
-        // TODO: Implement your own authentication logic here.
-        LoginService();
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
                         // On complete call either onLoginSuccess or onLoginFailed
                         // call Log in Service
-                        onLoginSuccess();
+
                         // onLoginFailed();
                         progressDialog.dismiss();
                     }
@@ -104,27 +107,31 @@ public class Login extends AppCompatActivity {
         loginButton.setEnabled(true);
         Intent intent = new Intent(this,MainActivity.class);
         startActivity(intent);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("driverId",Email.getText().toString());
-        editor.putString("password",Password.getText().toString());
-        editor.commit();
+        if(sharedPreferences.getString("driverId","").equals("")) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("driverId", Email.getText().toString());
+            editor.putString("password", Password.getText().toString());
+            editor.commit();
+        }
         finish();
     }
 
-    public void onLoginFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
+    public void onLoginFailed(int error) {
+        if (error==0)
+            Toast.makeText(getApplicationContext(),"error in driver Id ",Toast.LENGTH_LONG).show();
+        else if(error==1)
+            Toast.makeText(getBaseContext(),"error in Password",Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
 
         loginButton.setEnabled(true);
     }
 
-    public boolean validate() {
+    public boolean validate(String email, String password) {
         boolean valid = true;
 
-        String email = Email.getText().toString();
-        String password = Password.getText().toString();
-
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Email.setError("enter a valid email address");
+        if (email.isEmpty() ) {
+            Email.setError("enter a valid Id address");
             valid = false;
         } else {
             Email.setError(null);
@@ -140,22 +147,60 @@ public class Login extends AppCompatActivity {
         return valid;
     }
 
-    public void LoginService()
+    public void LoginService(String email, String password)
     {
-        String app_server_url = "http://seels-application.herokuapp.com/login/"+Email.getText().toString()+"/"+Password.getText().toString()+"";
+        String url = "http://seelsapp.herokuapp.com/login/"+email+"/"+password+"";
 
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, app_server_url,
-                new Response.Listener<String>() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    int res = response.getInt("logged");
+                    if (res==1)
+                    {
+                        Log.i(TAG,"log in success");
+                        onLoginSuccess();
+                    }
+                    else
+                    {
+                        int error = response.getInt("error");
+                        onLoginFailed(error);
+                    }
+                    Log.i("message",res+"");
+                } catch (JSONException e) {
+                    Log.i("message","howwwwwwwwww");
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),"",Toast.LENGTH_LONG).show();
+            }
+        });
+        SingleTon.getInstance(getApplicationContext()).addToRequestQueue(request);
+        /*
+        String app_server_url = "http://seelsapp.herokuapp.com/login/"+email+"/"+password+"";
+
+        JsonArrayRequest stringRequest = new JsonArrayRequest(Request.Method.POST, app_server_url,
+                new Response.Listener<JSONArray>() {
                     @Override
-                    public void onResponse(String response) {
-                        if (response.equals("true"))
-                        {
-                            onLoginSuccess();
+                    public void onResponse(JSONArray response) {
+                        try {
+                            int res = (int) response.get(0);
+                            if (res==1)
+                            {
+                                onLoginSuccess();
+                            }
+                            else
+                            {
+                                Toast.makeText(getApplicationContext(), res+" ?", Toast.LENGTH_SHORT).show();
+                                onLoginFailed();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                        else
-                        {
-                            onLoginFailed();
-                        }
+
                     }
                 }, new Response.ErrorListener() {
 
@@ -167,6 +212,6 @@ public class Login extends AppCompatActivity {
 
         );
         SingleTon.getInstance(Login.this).addToRequestQueue(stringRequest);
-
+        */
     }
 }

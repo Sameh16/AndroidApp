@@ -23,13 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Gyroscope"
-            android:theme="@style/AppTheme.Dark" />
-        <activity
             android:name=".MainActivity"
-            android:theme="@style/AppTheme.Dark" />
-        <activity
-            android:name=".LocationActivity"
             android:theme="@style/AppTheme.Dark" />
 
         <service
@@ -41,9 +35,7 @@
             android:enabled="true"
             android:exported="true" />
 
-        <!--
-            firebase API Services
-        -->
+        <!-- firebase API Services -->
         <service android:name=".FcmInstanceIdService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
@@ -69,7 +61,14 @@
 
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps"></activity>
+            android:label="@string/title_activity_maps" />
+
+        <service
+            android:name=".MyService2"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".Rate"></activity>
     </application>
 
 </manifest>

@@ -1,10 +1,27 @@
 package com.example.sameh.sensordatatest;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class MyService extends Service {
 
@@ -19,8 +36,14 @@ public class MyService extends Service {
     }
 
     private IBinder mBinder=new MyServiceBinder();
+    GoogleMap mMap;
+    double rad;
+    SharedPreferences sharedPreferences;
+    public MyService(GoogleMap googleMap,double range) {
+        mMap =googleMap;
+        rad = range;
+        Log.i("String",rad+"");
 
-    public MyService() {
     }
 
     @Override
@@ -62,10 +85,48 @@ public class MyService extends Service {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            count++;
-            Log.i("count",count+"");
+            getNearestTrucks(rad);
 
         }
+    }
+
+    public void getNearestTrucks(double range) {
+        sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF), Context.MODE_PRIVATE);
+        String driverId = sharedPreferences.getString("driverId","");
+        String url = "http://seelsapp.herokuapp.com/getNearLocation/"+driverId+"/"+range+"";
+        final JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+
+                try {
+                    Log.i("tag",response.length()+" res");
+                    LatLng temp;
+                    for (int i=0;i<response.length();i++)
+                    {
+                        JSONObject jsonObject = response.getJSONObject(i);
+                        double lat = jsonObject.getDouble("lat");
+                        double lon = jsonObject.getDouble("lon");
+                        temp = new LatLng(lat,lon);
+                        MarkerOptions markerOptions =new MarkerOptions();
+                        markerOptions.position(temp);
+                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                        mMap.addMarker(markerOptions);
+                        Log.i("location",lat+"");
+                        //locations.add(temp);
+                    }
+                } catch (JSONException e) {
+
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        SingleTon.getInstance(getApplicationContext()).addToRequestQueue(request);
+
     }
 }
 
