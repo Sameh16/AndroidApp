@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.goodiebag.protractorview.ProtractorView;
 
 import me.itangqi.waveloadingview.WaveLoadingView;
 
@@ -31,6 +30,7 @@ public class Rate extends AppCompatActivity {
                 String va = text.getText().toString();
                 int vale = Integer.parseInt(va);
                 waveLoadingView.setProgressValue(vale);
+                waveLoadingView.setCenterTitle(va+"%");
             }
         });
     }

@@ -21,7 +21,14 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MainActivity extends AppCompatActivity
@@ -30,6 +37,7 @@ public class MainActivity extends AppCompatActivity
     private Button start;
     private Button stop;
     private String driverId;
+    private String tripId;
     SharedPreferences sharedPreferences;
 
 
@@ -59,6 +67,13 @@ public class MainActivity extends AppCompatActivity
         if(!runtime_permissions())
             enable_buttons();
         // topic for all devices
+//        if (sharedPreferences.contains("tripId"))
+//        {
+//            Intent intent = new Intent(MainActivity.this,MapsActivity.class);
+//            intent.putExtra("driverId",driverId);
+//            startActivity(intent);
+//        }
+        getMyTrip();
         FirebaseMessaging.getInstance().subscribeToTopic("topicA");
 
     }
@@ -69,10 +84,19 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Log.i("start","start");
-
-                Intent intent = new Intent(MainActivity.this,MapsActivity.class);
-                intent.putExtra("driverId",driverId);
-                startActivity(intent);
+                if (!sharedPreferences.contains("trip")) {
+                    if (!sharedPreferences.contains("tripId")) {
+                        getMyTrip();
+                    }
+                    else {
+                        StartTrip();
+                    }
+                }
+                else {
+                    Intent intent = new Intent(MainActivity.this,MapsActivity.class);
+                    intent.putExtra("driverId",driverId);
+                    startActivity(intent);
+                }
 
             }
         });
@@ -80,14 +104,109 @@ public class MainActivity extends AppCompatActivity
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                if (sharedPreferences.contains("trip"))
+                    StopTrip();
+                else
+                    Toast.makeText(getApplicationContext(),"You not start Trip yet",Toast.LENGTH_LONG).show();
                 Log.i("stop","stop");
-                Intent i = new Intent(getApplicationContext(),MyService2.class);
+                Intent i = new Intent(getApplicationContext(),GPSservice.class);
                 stopService(i);
 
             }
         });
 
+    }
+
+    private void StopTrip() {
+        String tripId = sharedPreferences.getString("tripId","");
+        String url = "https://seelsapp.herokuapp.com/endTrip/"+driverId+'/'+tripId;
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    if(response.has("Error"))
+                    {
+                        Toast.makeText(getApplicationContext(),response.getString("Error"),Toast.LENGTH_LONG).show();
+                    }
+                    else {
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.remove("tripId");
+                        editor.remove("trip");
+                        editor.commit();
+                        String tripId = response.getString("Success");
+                        Toast.makeText(getApplicationContext(),tripId,Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        SingleTon.getInstance(getApplicationContext()).addToRequestQueue(request);
+    }
+
+    private void getMyTrip() {
+        String url = "https://seelsapp.herokuapp.com/driverTrip/"+driverId;
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    if(response.has("Error"))
+                    {
+                        Toast.makeText(getApplicationContext(),response.getString("Error"),Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        tripId = response.getString("Success");
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("tripId", tripId);
+                        editor.commit();
+                        Toast.makeText(getApplicationContext(),"You can start Your Trip Now",Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        SingleTon.getInstance(getApplicationContext()).addToRequestQueue(request);
+    }
+    private void StartTrip() {
+       String url = "https://seelsapp.herokuapp.com/startTrip/"+driverId+"/"+tripId;
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    if(response.has("Error"))
+                    {
+                        Toast.makeText(getApplicationContext(),response.getString("Error"),Toast.LENGTH_LONG).show();
+                    }
+                    else {
+                        String tripId = response.getString("Success");
+                        Toast.makeText(getApplicationContext(),tripId,Toast.LENGTH_LONG).show();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("trip", tripId);
+                        editor.commit();
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        SingleTon.getInstance(getApplicationContext()).addToRequestQueue(request);
     }
 
     private boolean runtime_permissions() {
@@ -161,7 +280,6 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_send) {
 
         }else if (id == R.id.nav_out) {
-            sharedPreferences =  getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF), Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.remove("driverId");
             editor.remove("password");

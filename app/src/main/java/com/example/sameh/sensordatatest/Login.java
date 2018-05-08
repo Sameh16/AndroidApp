@@ -78,10 +78,7 @@ public class Login extends AppCompatActivity {
 
         final String email_temp = email;
         final String password_temp = password;
-        if (sharedPreferences.getString("driverId","").equals(""))
-            LoginService(email_temp,password_temp);
-        else
-            onLoginSuccess();
+
 
 
         new android.os.Handler().postDelayed(
@@ -89,7 +86,10 @@ public class Login extends AppCompatActivity {
                     public void run() {
                         // On complete call either onLoginSuccess or onLoginFailed
                         // call Log in Service
-
+                        if (sharedPreferences.getString("driverId","").equals(""))
+                            LoginService(email_temp,password_temp);
+                        else
+                            onLoginSuccess();
                         // onLoginFailed();
                         progressDialog.dismiss();
                     }
@@ -179,39 +179,6 @@ public class Login extends AppCompatActivity {
             }
         });
         SingleTon.getInstance(getApplicationContext()).addToRequestQueue(request);
-        /*
-        String app_server_url = "http://seelsapp.herokuapp.com/login/"+email+"/"+password+"";
 
-        JsonArrayRequest stringRequest = new JsonArrayRequest(Request.Method.POST, app_server_url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        try {
-                            int res = (int) response.get(0);
-                            if (res==1)
-                            {
-                                onLoginSuccess();
-                            }
-                            else
-                            {
-                                Toast.makeText(getApplicationContext(), res+" ?", Toast.LENGTH_SHORT).show();
-                                onLoginFailed();
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("Error",error.getMessage());
-            }
-        }
-
-        );
-        SingleTon.getInstance(Login.this).addToRequestQueue(stringRequest);
-        */
     }
 }

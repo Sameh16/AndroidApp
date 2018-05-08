@@ -69,38 +69,38 @@ public class MyService2 extends Service
         }
         public void volleySetLocation(Location location, Location prev_location)
         {
-
             double lat = location.getLatitude();
             double lon = location.getLongitude();
             double speed =0.0;
             if (prev_location.getLongitude()!=0) {
                 double distance = location.distanceTo(prev_location);
                 double diffTime = location.getTime() - prev_location.getTime();
+                diffTime/=1000;
                 if (location.hasSpeed())
                     speed = location.getSpeed();
                 else
                     speed = distance / diffTime;
             }
-            //Toast.makeText(context,"distance = "+distance,Toast.LENGTH_SHORT).show();
-            //Toast.makeText(context,"diffTime = "+diffTime,Toast.LENGTH_SHORT).show();
             prev_location.set(location);
             sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.FCM_PREF),Context.MODE_PRIVATE);
             String driverId = sharedPreferences.getString("driverId","");
-            String url = "https://seelsapp.herokuapp.com/"+lat+"/"+lon+"/"+speed+"/"+driverId+"/saveLocation";
+            String tripId = sharedPreferences.getString("tripId","");
+            String url = "https://seelsapp.herokuapp.com/"+lat+"/"+lon+"/"+speed+"/"+driverId+"/"+tripId+"/saveLocation";
             StringRequest request  = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    Log.i("location","send!!");// Toast.makeText(context,"Send!",Toast.LENGTH_SHORT).show();
+                    Log.i("location","send!!");
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
 
-                    //Toast.makeText(context,error.getMessage().toString(),Toast.LENGTH_SHORT).show();
                 }
             });
             SingleTon.getInstance(getApplicationContext()).addToRequestQueue(request);
         }
+
+
     }
 
     LocationListener[] mLocationListeners = new LocationListener[] {

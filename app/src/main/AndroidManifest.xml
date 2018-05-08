@@ -30,10 +30,6 @@
             android:name=".GPSservice"
             android:enabled="true"
             android:exported="true" />
-        <service
-            android:name=".MyService"
-            android:enabled="true"
-            android:exported="true" />
 
         <!-- firebase API Services -->
         <service android:name=".FcmInstanceIdService">
@@ -68,7 +64,17 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".Rate"></activity>
+        <activity android:name=".Rate" />
+
+        <service
+            android:name=".LocationService2"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity
+            android:name=".RateActivity"
+            android:label="@string/title_activity_rate"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

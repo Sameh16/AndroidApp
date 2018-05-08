@@ -3,16 +3,23 @@ package com.example.sameh.sensordatatest;
 import android.*;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -22,12 +29,14 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.TileOverlayOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,7 +52,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int LOCATION_REQUEST=500;
     private ArrayList<LatLng> locations;
     private double rad;
-    private CircleOptions circle;
+    private Circle circle;
     private Map<Integer,Marker> nearestTrucks;
     private Map<Integer,ArrayList<LatLng>> nearestTrucksPolylines;
     private ArrayList<Integer> drivers;
@@ -57,9 +66,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        Intent i =new Intent(getApplicationContext(),MyService2.class);
+        Intent i =new Intent(getApplicationContext(),GPSservice.class);
         startService(i);
-        circle = new CircleOptions();
         nearestTrucks = new HashMap<>();
         drivers = new ArrayList<>();
         nearestTrucksPolylines = new HashMap<>();
@@ -91,6 +99,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         // get my location
         mMap.setMyLocationEnabled(true);
+        mMap.setTrafficEnabled(true);
+        CircleOptions options = new CircleOptions();
+        options.center(new LatLng(30.5,31.5));
+        options.radius(0.01);
+        circle = mMap.addCircle(options);
         /*MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         mMap.addMarker(markerOptions);*/
@@ -98,19 +111,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
-                mMap.clear();
+               // mMap.clear();
                 if (mMap.getMyLocation()!=null) {
-                    start = true;
+                        start = true;
                         Location l = mMap.getMyLocation();
                         LatLng temp = new LatLng(l.getLatitude(), l.getLongitude());
-                        circle.center(temp);
+                        circle.setCenter(temp);
                         rad = getDistance(latLng, temp);
-                        circle.radius(rad);
-                        circle.strokeColor(Color.WHITE);
-                        circle.fillColor(Color.CYAN);
-                        mMap.addCircle(circle);
-                        TruckTask task = new TruckTask();
-                        task.execute(new String[]{""});
+                        circle.setRadius(rad);
+                        circle.setStrokeColor(Color.WHITE);
+                        circle.setFillColor(Color.CYAN);
+                    TruckTask task = new TruckTask();
+                    task.execute(new String[]{""});
+
                 }
             }
         });
@@ -149,7 +162,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-
                 try {
                     LatLng temp;
                     PolylineOptions polylineOptions = new PolylineOptions();
@@ -165,7 +177,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                     polylineOptions.add(points);
                     mMap.addPolyline(polylineOptions);
-
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -192,7 +203,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 try {
                     Log.i("tag", response.length() + " res");
                     LatLng temp;
-                    mMap.clear();
+                    //mMap.clear();
+
                     drivers.clear();
                     for (int i = 0; i < response.length(); i++) {
                         JSONObject jsonObject = response.getJSONObject(i);
@@ -208,26 +220,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         tr.add(temp);
                         drivers.add(driver_id);
                         nearestTrucksPolylines.put(driver_id, tr);
-                        MarkerOptions markerOptions = new MarkerOptions();
-                        markerOptions.position(temp);
-                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                        nearestTrucks.put(driver_id, mMap.addMarker(markerOptions));
+                        if(!nearestTrucks.containsKey(driver_id)){
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(temp);
+                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                            nearestTrucks.put(driver_id, mMap.addMarker(markerOptions));
+                        }else
+                        {
+                            Marker marker = nearestTrucks.get(driver_id);
+                            marker.setPosition(temp);
+                        }
+
                     }
                     LatLng lng;
                     Location l;
                     if (mMap.getMyLocation() != null){
                         l = mMap.getMyLocation();
                         lng = new LatLng(l.getLatitude(), l.getLongitude());
-                        circle.center(lng);
+                        circle.setCenter(lng);
+                        Log.i("MapsActivity","center Circle Change");
+                    }
+                    for (Map.Entry<Integer, Marker> entry : nearestTrucks.entrySet())
+                    {
+                        System.out.println(entry.getKey() + "/" + entry.getValue());
                     }
 
-                    mMap.addCircle(circle);
                     for (int i=0;i<drivers.size();i++)
                     {
                         PolylineOptions polylineOptions = new PolylineOptions();
-                        polylineOptions.color(Color.GREEN);
+                        polylineOptions.color(Color.RED);
                         ArrayList<LatLng> locations = nearestTrucksPolylines.get(drivers.get(i));
                         polylineOptions.addAll(locations);
+                        mMap.addPolyline(polylineOptions);
                     }
 
                 } catch (JSONException e) {
@@ -264,7 +288,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return d; // returns the distance in meter
     }
 
-
     private class TruckTask extends AsyncTask<String,Void,String>
     {
 
@@ -273,8 +296,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             while (start)
             {
                 try {
-                    Thread.sleep(150);
-
+                    Thread.sleep(1000);
                     getNearestTrucks();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -284,15 +306,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        start =false;
-    }
 
     @Override
     protected void onPause() {
         super.onPause();
         start = false;
     }
+
+
+
+    @Override
+    public void onBackPressed() {
+        start =false;
+        super.onBackPressed();
+
+    }
+
+
+
 }
